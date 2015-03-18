@@ -1,6 +1,9 @@
 /**
  * Collection of matrix operation
  * matrix implementation: vector of vector
+ *
+ * Todo:
+ *   1. examine quadlike multiplication
  */
 #ifndef VECTOROP
 #define VECTOROP "vector_op.h"
@@ -99,4 +102,78 @@ std::vector< std::vector<double> > unitMat (int dim)
     }
 
     return unit;
+}
+
+
+/******************************************************\
+    Get corresponding transpose matrix
+
+    Returns: transpose matrix
+\******************************************************/
+std::vector< std::vector<double> > MatTranspose ( \
+    std::vector< std::vector<double> > & xMat)
+{
+    std::vector< std::vector<double> > xTrans (xMat[0].size(), \
+        std::vector<double> (xMat.size(), 0));
+    for (int i=0; i<xMat[0].size(); ++i) {
+        for (int j=0; j<xMat.size(); ++j) {
+            xTrans[i][j] = xMat[j][i];
+        }
+    }
+    return xTrans;
+}
+
+
+/******************************************************\
+    Perform matrix multiplication, using MatTranspose
+
+    Returns: result matrix
+\******************************************************/
+std::vector< std::vector<double> > MatMultiply ( \
+    std::vector< std::vector<double> > & aMat, \
+    std::vector< std::vector<double> > & bMat)
+{
+    // declare result matrix first
+    std::vector< std::vector<double> > result (aMat.size(), \
+        std::vector<double> (bMat[0].size(), 0));
+
+    // transpose second matrix for inner product operation
+    std::vector< std::vector<double> > bTrans = MatTranspose(bMat);
+    for (int i=0; i<aMat.size(); ++i) {
+        for (int j=0; j<bMat[0].size(); ++j) {
+            result[i][j] = innerProduct(aMat[i], bTrans[j]);
+        }
+    }
+
+
+    return result;
+
+}
+
+
+/******************************************************\
+    Perform quadlike matrix
+
+    Returns: result matrix
+\******************************************************/
+std::vector< std::vector<double> > QuadMatMultiply ( \
+    std::vector< std::vector<double> > & xMat, \
+    std::vector< std::vector<double> > & aMat)
+{
+    // transpose the x and a matrix first for multiplication
+    std::vector< std::vector<double> > xTrans = MatTranspose(xMat);
+
+    // compute X^T*A
+    std::vector< std::vector<double> > firstMat = MatMultiply(xTrans, aMat);
+    std::cout << "first Multiply" << std::endl;
+    std::cout << "----------------" << std::endl;
+    printMat(firstMat);
+
+    // compute firstMat * X
+    std::vector< std::vector<double> > secondMat = MatMultiply(firstMat, xMat);
+    std::cout << "second Multiply" << std::endl;
+    std::cout << "---------------" << std::endl;
+    printMat(secondMat);
+
+    return secondMat;
 }
