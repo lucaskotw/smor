@@ -9,16 +9,18 @@
 #define VECTOR <vector>
 #include VECTOR
 #endif
+#ifndef E_DENSE
+#define E_DENSE <Eigen/Dense>
+#include E_DENSE
+#endif
 
-double GershgorinBound(std::vector< std::vector<double> > & lap)
+double GershgorinBound(Eigen::MatrixXd & lap)
 {
     double bound = 0;
     double curr_bound_val;
 
 
-    for (std::vector< std::vector<double> >::iterator itRR=lap.begin(); \
-         itRR!=lap.end(); \
-         ++itRR) {
+    for (int r=0; r<lap.rows(); ++r) {
 
 
         // clean the current bound value for next row
@@ -26,14 +28,12 @@ double GershgorinBound(std::vector< std::vector<double> > & lap)
 
 
         // get the sum of row of laplacian matrix for Gershgorin bound calculate
-        for (std::vector<double>::iterator itCC=(*itRR).begin(); \
-                 itCC!=(*itRR).end(); \
-                 ++itCC) {
+        for (int c=0; c<lap.cols(); ++c) {
 
-            if (*itCC < 0) {
-                curr_bound_val -= *itCC;
+            if (lap(r, c) < 0) {
+                curr_bound_val -= lap(r, c);
             } else {
-                curr_bound_val += *itCC;
+                curr_bound_val += lap(r, c);
             }
         }
 

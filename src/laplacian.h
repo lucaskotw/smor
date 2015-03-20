@@ -1,6 +1,7 @@
 /**
  * Returns the Laplacian matrix of the given graph
- * Returns type: std::vector< std::vector<int> >
+ * Laplacian Matrix is an appropriate Laplacian
+ * Returns type: Eigen::MatrixXd
  */
 #ifndef MATRIXOP
 #define MATRIXOP "matrix_op.h"
@@ -12,27 +13,35 @@
 #endif
 
 
-std::vector< std::vector<double> > Laplacian(Graph::Graph g)
+Eigen::MatrixXd Laplacian(Graph::Graph g, double distPar)
 {
     int nNodes = g.getNumNodes();
-    std::vector< std::vector<double> > lap(nNodes, std::vector<double>(nNodes, 0));
+    Eigen::MatrixXd lap(nNodes, nNodes);
+    lap.fill(0);
+    Eigen::VectorXd nbors;
+    Eigen::VectorXd dist;
     for (int i=0; i<g.getNumNodes(); ++i) {
 
         // if node j is node i's neighbor
-        std::vector<int> nbors = g.adj(i);
-        for (int j=0; j<nbors.size(); ++j) {
-            lap[i][nbors.at(j)] = -1;
-        }
+        nbors.resize(g.adj(i).size());
+        nbors = g.adj(i);
+        dist.resize(g.getNumNodes());
+        dist = g.BFS(i);
+        lap.row(i) = -1 * dist.array().pow(-1 * distPar);
+        // for (int j=0; j<nbors.size(); ++j) {
+        //     lap(i, nbors(j)) = -1;
+        // }
 
         // node i self value (diagonal)
-        lap[i][i] = (double)g.deg(i);
+        // lap(i, i) = (double)g.deg(i);
+        lap(i, i) = 0;
+        for (int j=0; j<dist.size(); ++j) {
+            if (i != j) {
+                lap(i, i) += pow(dist(j), -1 * distPar);
+            }
+        }
+
     }
-
-
-    // show the result of laplacian matrix
-    // std::cout << "Laplacian Matrix" << std::endl;
-    // std::cout << "----------------" << std::endl;
-    // printMat(lap);
 
     return lap;
 }

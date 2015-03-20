@@ -5,6 +5,10 @@
 #define GRAPH "graph.h"
 #include GRAPH
 #endif
+#ifndef E_DENSE
+#define E_DENSE <Eigen/Dense>
+#include E_DENSE
+#endif
 #ifndef VECTOR
 #define VECTOR <vector>
 #include VECTOR
@@ -42,100 +46,163 @@ double norm1(double a, double b)
 /**********************************************************
     Stress Major Process, Modify given x, y coordinates
 ***********************************************************/
-std::vector< std::vector<double> > getResidualDist( \
-    std::vector< std::vector<double> > & lap \
-    std::vector<double> & refCoord)
+Eigen::MatrixXd getResidualDist( \
+    Eigen::MatrixXd & dist, \
+    Eigen::VectorXd & refCoord)
 {
-    std::vector< std::vector<double> > dist (lap.size(), \
-        std::vector<double> (lap.size(), 0));
+    Eigen::MatrixXd resi_dist(dist.rows(), dist.cols());
+    resi_dist.fill(0);
     double normVal;
-    for (int i=0; i<lap.size(); ++i) {
-        for (int j=0; j<lap.size(); ++j) {
-            normVal = norm1(refCoord[i] - refCoord[j]);
-            if (lap[i][j] > normVal) {
-                dist[i][j] = sqrt( (lap[i][j])^2 - normVal^2 );
+    for (int i=0; i<dist.rows(); ++i) {
+        for (int j=0; j<dist.cols(); ++j) {
+            normVal = norm1(refCoord(i), refCoord(j));
+            if (dist(i, j) > normVal) {
+                resi_dist(i, j) = sqrt( pow(dist(i, j), 2) - dist(normVal, 2) );
             }
         }
     }
 
+    // std::cout << "result distance:" << std::endl;
+    // std::cout << resi_dist << std::endl;
 
-    return dist;
+    return resi_dist;
 }
 
 
-/**********************************************************
+/*********************************************************
     Stress Major Process, Modify given x, y coordinates
-***********************************************************/
-std::vector<double> computeNextSol(std::vector< std::vector<double> > & lap, \
-    std::vector<double> & tilCoord, std::vector<double> & refCoord, \
+**********************************************************/
+Eigen::VectorXd computeNextSol(Eigen::MatrixXd & lap, \
+    Eigen::MatrixXd & dist, \
+    Eigen::VectorXd & tilCoord, Eigen::VectorXd & refCoord, \
     double distPar)
 {
 
     // initial solution vector
-    std::vector<double> sol;
+    Eigen::VectorXd sol(dist.rows());
     double elemSum; // solution element's initialization
 
     // calculate residual distance
-    std::vector< std::vector<double> > resi_dist = getResidualDist(lap, refCoord);
+    Eigen::MatrixXd resi_dist = getResidualDist(dist, refCoord);
 
 
     // calculate next solution of the linear system
-    for (int i=0; i<resi_dist.size(); ++i) {
+    for (int i=0; i<resi_dist.rows(); ++i) {
         elemSum = 0;
-        for (int j=0; j<resi_dist.size(); ++j) {
-            if ((lap[i][j] != 0) & (i!=j)) {
-                if (tilCoord[i] >= tilCoord[j]) {
-                    elemSum += pow(resi_dist[i][j], 1-distPar);
+        for (int j=0; j<resi_dist.cols(); ++j) {
+            if ( (dist(i, j) != 0) & (i != j) ) {
+                if (tilCoord(i) >= tilCoord(j)) {
+                    elemSum += resi_dist(i, j) * pow(dist(i, j), -distPar);
                 } else {
-                    elemSum -= pow(resi_dist[i][j], 1-distPar);
+                    elemSum -= resi_dist(i, j) * pow(dist(i, j), -distPar);
                 }
             }
         }
-        sol = elemSum;
+        sol(i) = elemSum;
 
     }
 
 
+    return sol;
 
 }
 
 
+/**************************************************************
+    compute the next layout vector for coordinates adjustment
+    assume A is dense
+ **************************************************************/
+Eigen::VectorXd computeNextLayoutVec(Eigen::MatrixXd & A, \
+    Eigen::MatrixXd & basis, \
+    Eigen::VectorXd & xTil, \
+    Eigen::VectorXd & b_x)
+{
+    Eigen::VectorXd sol(basis.rows());
+    sol = (A.transpose() * A).ldlt().solve(A.transpose() * basis * b_x);
 
-std::vector<double> computeNextLayoutVec(A, basis, xTil, b_x);
+    return sol;
+}
+
 
 
 
 /**********************************************************
     Stress Major Process, Modify given x, y coordinates
 ***********************************************************/
+// x and y coordinates are the first and second row of basis
+// and pass in the calculated basis
 void twoDimStressSubspace(Graph::Graph & g, \
-                          std::vector< std::vector<double> > & basis, \
-                          std::vector<double> & x_coord, \
-                          std::vector<double> & y_coord)
+                          Eigen::MatrixXd & lap, \
+                          Eigen::MatrixXd & dist, \
+                          Eigen::MatrixXd & basis, \
+                          Eigen::VectorXd & x_coord, \
+                          Eigen::VectorXd & y_coord)
 {
-    std::vector< std::vector<double> > lap = Laplacian(g);
-    std::vector< std::vector<double> > A = QuadMultiply(basis, lap);
 
-    std::vector<double> xTil;
-    std::vector<double> yTil;
-    std::vector<double> b_x;
-    std::vector<double> b_y;
-    std::vector<double> v;
+    // Eigen::MatrixXd lap = Laplacian(g);
+    // std::cout << "current basis" << std::endl;
+    // std::cout << basis << std::endl;
 
-    while ((xTil != x) || (yTil != y)) {
+    Eigen::MatrixXd A = basis * lap * basis.transpose();
 
+    // std::cout << "A matrix" << std::endl;
+    // std::cout << A << std::endl;
+
+
+    Eigen::VectorXd xTil;
+    Eigen::VectorXd yTil;
+    Eigen::VectorXd b_x;
+    Eigen::VectorXd b_y;
+    Eigen::VectorXd v;
+
+    bool termination_flag = false;
+    int i = 0;
+    // while ((xTil != x_coord) || (yTil != y_coord)) {
+    while(true) {
+    // for (int i=0; i<11; ++i) {
         // improve the x-axis
         xTil = x_coord;
-        b_x = computeNextSol(lap, xTil, y_coord, 2); // distPar (alpha) = 2
+        b_x = computeNextSol(lap, dist, xTil, y_coord, 2); // distPar (alpha) = 2
+        // std::cout << "next x layout solution" << std::endl;
+        // std::cout << "b_x = " << b_x.transpose() << std::endl;
         v = computeNextLayoutVec(A, basis, xTil, b_x);
-        x_coord = MatVecMultiply(basis, v);
+        // std::cout << "next x layout vector" << std::endl;
+        // std::cout << "v = " << v.transpose() << std::endl;
+        x_coord = basis.transpose() * v;
 
 
 
         // improve the y-axis
         yTil = y_coord;
-        b_y = computeNextSol(lap, yTil, x_coord, 2); // distPar (alpha) = 2
-        v = computeNextLayoutVec(A, basis, b_x);
-        y_coord = MatVecMultiply(basis, v);
+        b_y = computeNextSol(lap, dist, yTil, x_coord, 2); // distPar (alpha) = 2
+        // std::cout << "next y layout solution" << std::endl;
+        // std::cout << "b_y = " << b_y.transpose() << std::endl;
+        v = computeNextLayoutVec(A, basis, yTil, b_y);
+        // std::cout << "next y layout vector" << std::endl;
+        // std::cout << "y = " << v.transpose() << std::endl;
+        y_coord = basis.transpose() * v;
+
+        std::cout << "round #" << i << std::endl;
+        std::cout << "x = " << x_coord.transpose() << std::endl;
+        if (xTil != x_coord) {
+            std::cout << "xtil = x: " << "false" << std::endl;
+        } else {
+            std::cout << "xtil = x: " << "true" << std::endl;
+        }
+        std::cout << "y = " << y_coord.transpose() << std::endl;
+        if (yTil != y_coord) {
+            std::cout << "ytil = y: " << "false" << std::endl;
+        } else {
+            std::cout << "ytil = y: " << "true" << std::endl;
+        }
+        if ((xTil != x_coord) || (yTil != y_coord)) {
+            std::cout << "not terminate" << std::endl;
+        } else {
+            std::cout << "terminated" << std::endl;
+            break;
+        }
+        i++;
+    // }
+
     }
 }

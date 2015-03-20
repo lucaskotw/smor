@@ -3,7 +3,7 @@
  */
 
 
-int ArgMax(std::vector<double> vec) {
+int ArgMax(VectorXd vec) {
     int idx = -1; // initialize selected idx
     int curr_max = -1;
     for (int i=0; i<vec.size(); ++i) {

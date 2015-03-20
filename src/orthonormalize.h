@@ -5,6 +5,10 @@
 #define VECTOR <vector>
 #include VECTOR
 #endif
+#ifndef E_DENSE
+#define E_DENSE <Eigen/Dense>
+#include E_DENSE
+#endif
 #ifndef VECTOROP
 #define VECTOROP "vector_op.h"
 #include VECTOROP
@@ -15,50 +19,45 @@
 #endif
 
 
-void Orthonormalize(std::vector< std::vector<double> > & basis)
+void Orthonormalize(Eigen::MatrixXd & basis)
 {
-    int nDim = basis.at(0).size();
+    int nDim = basis.cols();
     double epsl = 0.001;
-    std::vector<double> center_vec(nDim, 1);
-    normalizeVec(center_vec);
-    std::cout << "center vector: " << std::endl;
-    printVec(center_vec);
+    Eigen::VectorXd center_vec(nDim);
+    center_vec.fill(1);
 
-    double dotVal = 0;    
-    std::vector<double> projVal;
-    for (int i=0; i<basis.size(); ++i) {
-        std::cout << "basis #" << i << std::endl;
-        printVec(basis[i]);
+    // normalize the vectors
+    center_vec = center_vec / center_vec.norm();
+    
+
+    double dotVal = 0;
+    Eigen::VectorXd projVal(basis.cols());
+
+    for (int i=0; i<basis.rows(); ++i) {
 
         // for each vector in basis, process with center_vec
-        dotVal = innerProduct(basis[i], center_vec);
-        projVal = scalarMultiply(dotVal, center_vec);
-        for (int k=0; k<basis.at(i).size(); ++k) {
-            basis[i][k] = basis[i][k] - projVal[k];
-        }
-        printVec(basis[i]);
+        dotVal = basis.row(i).dot(center_vec);
+        projVal = dotVal * center_vec;
+        basis.row(i) = basis.row(i) - projVal.transpose();
+
+
 
         // process with previous vector after process with center_vec
         for (int j=0; j<i; ++j) {
-            dotVal = innerProduct(basis[i], basis[j]);
-            projVal = scalarMultiply(dotVal, basis[j]);
-            for (int k=0; k<basis.at(i).size(); ++k) {
-                basis[i][k] = basis[i][k] - projVal[k];
-            }
-            printVec(basis[i]);
+            dotVal = basis.row(i).dot(basis.row(j));
+            projVal = dotVal * basis.row(j);
+            basis.row(i) = basis.row(i) - projVal.transpose();
         }
 
         // remove linearly dependent vectors
-        if (norm(basis[i]) < epsl) {
+        if (basis.row(i).norm() < epsl) {
 
-            for (int j=0; j<basis[i].size(); ++j) {
-                basis[i][j] = 0;
-            }
+            basis.row(i).fill(0);
 
 
         } else {
-            
-            normalizeVec(basis[i]);
+
+            basis.row(i) = basis.row(i)/basis.row(i).norm();
         }
     }
 
@@ -66,14 +65,6 @@ void Orthonormalize(std::vector< std::vector<double> > & basis)
     // show the result of orthonormal basis
     std::cout << "Basis after orthornomalizing" << std::endl;
     std::cout << "----------------------------" << std::endl;
-    for (std::vector< std::vector<double> >::iterator it1=basis.begin(); \
-         it1!=basis.end(); \
-         ++it1) {
-        for (std::vector<double>::iterator it2=(*it1).begin(); \
-             it2!=(*it1).end(); \
-             ++it2) {
-            std::cout << (*it2) << " ";
-        }
-        std::cout << std::endl;
-    }
+    std::cout << basis << std::endl;
+    std::cout << std::endl;
 }

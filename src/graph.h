@@ -9,6 +9,10 @@
 #define VECTOR <vector>
 #include VECTOR
 #endif
+#ifndef E_DENSE
+#define E_DENSE <Eigen/Dense>
+#include E_DENSE
+#endif
 #ifndef IOSTREAM
 #define IOSTREAM <iostream>
 #include IOSTREAM
@@ -48,9 +52,9 @@ class Graph
         void addEdge(int u, int v, int w);
         int getNumNodes();
         int getWeight(int u, int v);
-        std::vector<int> adj(int s);
+        Eigen::VectorXd adj(int s);
         int deg(int s);
-        std::vector<double> BFS(int s);
+        Eigen::VectorXd BFS(int s);
         void showGraph();
 };
 
@@ -113,16 +117,21 @@ int Graph::getWeight(int u, int v)
 /************************************************************
   Get the neighbor of given source
 ************************************************************/
-std::vector<int> Graph::adj(int s) {
-    std::vector<int> neighbors;
-    int curr_size = neighbors.size();
+Eigen::VectorXd Graph::adj(int s) {
+    std::vector<double> t_nbors;
+
     for (std::vector<Edge>::iterator it=Edges.begin(); it!=Edges.end(); ++it) {
         if (it->u == s) {
-            neighbors.push_back(it->v);
+            t_nbors.push_back(it->v);
         } else if (it->v == s) {
-            neighbors.push_back(it->u);
+            t_nbors.push_back(it->u);
         }
     }
+    double * ptr = &t_nbors[0];
+    Eigen::Map<Eigen::VectorXd> neighbors (ptr, t_nbors.size());
+    // std::cout << "adj of node " << s << std::endl;
+    // std::cout << neighbors.transpose() << std::endl;
+
     return neighbors;
 }
 
@@ -140,55 +149,49 @@ int Graph::deg(int s) {
   Run Breadth-first Search and returns the distance of the
   nodes 
 ************************************************************/
-std::vector<double> Graph::BFS(int s)
+Eigen::VectorXd Graph::BFS(int s)
 {
-    std::vector<double> dist(numNodes, 0);
+    Eigen::VectorXd dist(numNodes);
+    dist.fill(0);
     std::queue<int> Q;
     std::vector<bool> explored(numNodes, false);
     Q.push(s);
     explored[s] = true;
 
-    // initialize message
-    // std::cout << "BFS start at source: " << s << std::endl;
-    // std::cout << "explored status: ";
-    // for (int i=0; i<explored.size(); ++i) {
-    //     if (explored.at(i)) {
-    //         std::cout << "t ";
-    //     } else {
-    //         std::cout << "f ";
-    //     }
-    // }
-    // std::cout << std::endl;
     while (!Q.empty()) {
         int v = Q.front();
         Q.pop();
-        // std::cout << "Process: " << v << std::endl;
-        std::vector<int> nbors = Graph::adj(v);
-        // std::cout << "Neighbors: ";
-        // for (std::vector<int>::iterator it=nbors.begin(); it!=nbors.end(); ++it) {
-        //     std::cout << *it << " ";
-        // }
-        // std::cout << std::endl;
 
-        for (std::vector<int>::iterator it=nbors.begin(); it!=nbors.end(); ++it) {
-            if (!explored.at(*it)) {
-                Q.push(*it);
-                explored[*it] = true;
-                int weight = Graph::getWeight(v, *it);
-                // std::cout << "edge weight of (" << v << ", " << *it << "):" \
-                //             << weight << std::endl;
+        Eigen::VectorXd nbors = Graph::adj(v);
+
+        for (int i=0; i<nbors.size(); ++i) {
+            if ( !explored.at(nbors(i)) ) {
+                Q.push(nbors(i));
+                explored[nbors(i)] = true;
+                // Consider only unit weight
+                int weight = Graph::getWeight(v, nbors(i));
+
                 if (weight != 0) {
-                    dist[*it] = dist[v] + weight;
+                    dist(nbors(i)) = dist(v) + weight;
                 }
             }
         }
+        // std::cout << "current dist" << s << std::endl;
+        // std::cout << dist.transpose() << std::endl;
+        // std::cout << "current explored" << std::endl;
+        // for (int j=0; j<explored.size(); ++j) {
+        //     if (explored[j]) {
+        //         std::cout << "t";
+        //     } else {
+        //         std::cout << "f";
+        //     }
+        //     std::cout << " ";
+        // }
+        // std::cout << std::endl;
     }
 
-    // std::cout << "distance to source " << s << std::endl;
-    // for (std::vector<double>::iterator it=dist.begin(); it!=dist.end(); ++it) {
-    //     std::cout << *it << " ";
-    // }
-    // std::cout << std::endl;
+    // std::cout << "BFS from source " << s << std::endl;
+    // std::cout << dist.transpose() << std::endl;
 
     return dist;
 }
