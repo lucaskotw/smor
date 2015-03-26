@@ -10,34 +10,73 @@
  * Todo:
  *   1. implement stress majorization
  */
+
+// C-based header file
+extern "C" {
+  #include <stdio.h>
+  #include <stdlib.h>
+}
+
+
+// C++ based header file
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <algorithm>
 #include <Eigen/Dense>
-#include "all_pair_shortest_path.h"
-#include "hde.h"
-#include "subspace_iter.h"
-#include "two_dim_stress_subspace.h"
+
+
+#include "all_pair.hpp"
+#include "hde.hpp"
+#include "lap.hpp"
+#include "subspace_iter.hpp"
+#include "two_d_stress.hpp"
+#include "load_graph.hpp"
 
 // Package for OpenGL
-#include <GL/glew.h>
-#include <GL/freeglut.h>
+#include <GLFW/glfw3.h>
 
 
-#define WINDOW_TITLE_PREFIX "2D subspace stress layout"
-
-int
-  InitialWidth = 800,
-  InitialHeight = 600,
-  WindowHandle = 0;
-
-// pre-declaration of Open GL
-void InitializeDrawing(int, char**);
-void InitWindow(int, char**);
-void ResizeFunction(int, int);
-void RenderFunction(void);
+void setPointsAttributes()
+{
+  glEnable(GL_POINT_SMOOTH);
+  glPointSize(20);
+}
 
 
+void drawNodes(Eigen::VectorXd & x_coord, Eigen::VectorXd & y_coord)
+{
+  glBegin(GL_POINTS);
+
+    glColor3f(0.5f, 0.5f, 0.5f);
+    for (int i=0; i<x_coord.size(); ++i) {
+      glVertex2f(x_coord(i)/3, y_coord(i)/3);
+    }
+
+  glEnd();
+}
+
+
+void drawEdges(Eigen::MatrixXd edges, \
+  Eigen::VectorXd & x_coord, Eigen::VectorXd & y_coord)
+{
+
+  glBegin(GL_LINES);
+
+    glColor3f(0.5f, 0.5f, 0.5f);
+    double pt1;
+    double pt2;
+    for (int i=0; i<edges.rows(); ++i) {
+      pt1 = edges(i, 0);
+      pt2 = edges(i, 1);
+      glVertex2f(x_coord(pt1)/3, y_coord(pt1)/3);
+      glVertex2f(x_coord(pt2)/3, y_coord(pt2)/3);
+      // std::cout << "edges size=" << i << std::endl;
+    }
+    
+
+  glEnd();
+}
 
 
 int main(int argc, char** argv)
@@ -61,8 +100,20 @@ int main(int argc, char** argv)
   g.addEdge(3, 4, 1);
   g.addEdge(4, 5, 1);
   g.addEdge(6, 7, 1);
-  g.showGraph();
-  // G = CreateGraph(D);
+  
+  std::cout << "edges:" << std::endl;
+  std::cout << g.getEdges() << std::endl;
+
+
+  // // C-style (due to mmio is c-based code)
+  // Eigen::MatrixXd mat;
+  // int nodeNums;
+  // char path[] = "data/karate.mtx";
+  // mmRead(path, mat, nodeNums);
+  // Graph::Graph g(nodeNums);
+  // CreateGraph(g, mat);
+  // g.showGraph();
+  
 
 
 
@@ -75,117 +126,93 @@ int main(int argc, char** argv)
   std::cout << dist << std::endl;
 
   // test HDE
-  Eigen::MatrixXd low_eigen = HDE(g, 3);
+  Eigen::MatrixXd low_eigen = HDE(g, 50);
 
 
-  // test Laplacian
-  Eigen::MatrixXd lap = Laplacian(g, 2);
-  std::cout << "Appropriate Laplcian" << std::endl;
-  std::cout << lap << std::endl;
+  // // test Laplacian
+  // Eigen::MatrixXd lap = Laplacian(g, 2);
+  // std::cout << "Appropriate Laplcian" << std::endl;
+  // std::cout << lap << std::endl;
 
-  // test space iteration
-  SubspaceIteration(lap, low_eigen);
-  Eigen::VectorXd x_coord = low_eigen.row(0);
-  Eigen::VectorXd y_coord = low_eigen.row(1);
-  std::cout << "previous coordinates" << std::endl;
-  std::cout << "x:" << x_coord.transpose() << std::endl;
-  std::cout << "y:" << y_coord.transpose() << std::endl;
+  // // test space iteration
+  // SubspaceIteration(lap, low_eigen);
+  // Eigen::VectorXd x_coord = low_eigen.row(0);
+  // Eigen::VectorXd y_coord = low_eigen.row(1);
+  // std::cout << "previous coordinates" << std::endl;
+  // std::cout << "x: " << x_coord.transpose() << std::endl;
+  // std::cout << "y: " << y_coord.transpose() << std::endl;
 
   // // test 2d stress minimization
-  twoDimStressSubspace(g, lap, dist, low_eigen, x_coord, y_coord);
-  std::cout << "result coordinates" << std::endl;
-  std::cout << "x:" << x_coord.transpose() << std::endl;
-  std::cout << "y:" << y_coord.transpose() << std::endl;
-  // int t = 10;
-  // X = InitialPlacement(G, t) // Not Preliminary Drawing
+  // twoDimStressSubspace(g, lap, dist, low_eigen, x_coord, y_coord);
+  // std::cout << "result coordinates" << std::endl;
+  // std::cout << "x: " << x_coord.transpose() << std::endl;
+  // std::cout << "y: " << y_coord.transpose() << std::endl;
+  // // int t = 10;
+  // // X = InitialPlacement(G, t) // Not Preliminary Drawing
 
 
-  /* -------- *\
-      Layout
-  \* -------- */
+  // /* -------- *\
+  //     Layout
+  // \* -------- */
   
-  // StressMajorizationLayout(G, X, t)
+  // // StressMajorizationLayout(G, X, t)
 
-  /* ---------------- *\
-      Draw the graph
-  \* ---------------- */
+  // /* ---------------- *\
+  //     Draw the graph
+  // \* ---------------- */
 
-  InitializeDrawing(argc, argv);
-  // DrawLayout(X)
+  // // InitializeDrawing(argc, argv);
+  // // DrawLayout(X)
+  // GLFWwindow* window;
+
+  // /* Initialize the library */
+  // if (!glfwInit())
+  //     return -1;
+
+  // /* Create a windowed mode window and its OpenGL context */
+  // window = glfwCreateWindow(800, 800, "2D Stress Layout", NULL, NULL);
+  // if (!window)
+  // {
+  //     glfwTerminate();
+  //     return -1;
+  // }
+
+  // /* Make the window's context current */
+  // glfwMakeContextCurrent(window);
+
+
+  // /* Loop until the user closes the window */
+  // while (!glfwWindowShouldClose(window))
+  // {
+  //   /* Render here */
+
+  //   // glfwGetFramebufferSize(window, &width, &height);
+  //   // glViewport(0, 0, width, height);
+  //   setPointsAttributes();
+
+  //   // set frame background color
+  //   glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );
+  //   glClear(GL_COLOR_BUFFER_BIT);
+
+
+  //   drawNodes(x_coord, y_coord);
+  //   drawEdges(g.getEdges(), x_coord, y_coord);
+
+    
+
+
+  //   /* Swap front and back buffers */
+  //   glfwSwapBuffers(window);
+
+  //   /* Poll for and process events */
+  //   glfwPollEvents();
+  // }
+
+  // glfwTerminate();
 
 
 
 
 
   return 0; // end of main program
-}
-
-/**
- * Initialze the Drawing Process and Provide Open GL basic information
- */
-void InitializeDrawing(int argc, char** argv)
-{
-  InitWindow(argc, argv);
-
-  std::cout << "--------------------------------" << std::endl;
-  std::cout << "|* Initialize Drawing Process *|" << std::endl;
-  std::cout << "--------------------------------" << std::endl;
-  std::cout << "INFO: OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
- 
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-}
-
-
-/**
- * Create Basic Window and Run the Rending Process
- */
-void InitWindow(int argc, char** argv)
-{
-  glutInit(&argc, argv);
-  
-  glutInitContextVersion(4, 1); // Todo: present the version of the OpenGL?
-  glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
-  glutInitContextProfile(GLUT_CORE_PROFILE);
- 
-  glutSetOption(
-    GLUT_ACTION_ON_WINDOW_CLOSE,
-    GLUT_ACTION_GLUTMAINLOOP_RETURNS
-  );
-  
-  glutInitWindowSize(InitialWidth, InitialHeight);
- 
-  glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
- 
-  WindowHandle = glutCreateWindow(WINDOW_TITLE_PREFIX);
- 
-  if (WindowHandle < 1) {
-    std::cout << "ERROR: Could not create a new rendering window." << std::endl;
-    exit(EXIT_FAILURE);
-  }
- 
-  glutReshapeFunc(ResizeFunction);
-  glutDisplayFunc(RenderFunction);
-}
-
-
-/**
- * Dealing with the Action While User Resize the Window
- */
-void ResizeFunction(int Width, int Height)
-{
-  InitialWidth = Width;
-  InitialHeight = Height;
-  glViewport(0, 0, InitialWidth, InitialHeight);
-}
-
-
-/**
- * Rendering Process
- */
-void RenderFunction(void)
-{
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
- 
-  glutSwapBuffers();
-  glutPostRedisplay();
 }

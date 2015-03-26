@@ -22,41 +22,9 @@
 #include QUEUE
 #endif
 
-/********************
-  Declare edge struct
-*********************/
-struct Edge
-{
-    int u; // First End Point
-    int v; // Second End Point
-    int w; // weight on edge
-};
+#include "graph.hpp"
 
 
-
-
-
-
-/************************************************************
-  Class Graph represents a Graph(V, E) having vertices V and
-  edges E.
-************************************************************/
-class Graph
-{
-    private:
-        int numNodes;
-        std::vector<Edge> Edges;
-    public:
-        Graph(int size);
-        ~Graph();
-        void addEdge(int u, int v, int w);
-        int getNumNodes();
-        int getWeight(int u, int v);
-        Eigen::VectorXd adj(int s);
-        int deg(int s);
-        Eigen::VectorXd BFS(int s);
-        void showGraph();
-};
 
 
 /************************************************************
@@ -111,6 +79,24 @@ int Graph::getWeight(int u, int v)
         }
     }
     return 0; // represent the invalid end point assignment
+}
+
+
+/************************************************************
+  Get the weight of given two end points
+************************************************************/
+Eigen::MatrixXd Graph::getEdges() {
+
+    Eigen::MatrixXd edges(Edges.size(), 2);
+
+    int i = 0;
+    for (std::vector<Edge>::iterator it=Edges.begin(); it!=Edges.end(); ++it) {
+        edges(i, 0) = it->u;
+        edges(i, 1) = it->v;
+        i++;
+    }
+
+    return edges;
 }
 
 

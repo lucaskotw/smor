@@ -2,7 +2,7 @@
  * Implement 2D stress subspace process
  */
 #ifndef GRAPH
-#define GRAPH "graph.h"
+#define GRAPH "graph.hpp"
 #include GRAPH
 #endif
 #ifndef E_DENSE
@@ -13,9 +13,9 @@
 #define VECTOR <vector>
 #include VECTOR
 #endif
-#ifndef LAPLACIAN
-#define LAPLACIAN "laplacian.h"
-#include LAPLACIAN
+#ifndef LAP
+#define LAP "lap.hpp"
+#include LAP
 #endif
 
 
@@ -155,10 +155,11 @@ void twoDimStressSubspace(Graph::Graph & g, \
     Eigen::VectorXd b_y;
     Eigen::VectorXd v;
 
-    bool termination_flag = false;
     int i = 0;
     // while ((xTil != x_coord) || (yTil != y_coord)) {
-    while(true) {
+    int ter = 0; // clean: after check the error of the code
+    // while(true) {
+    while(ter<200) {
     // for (int i=0; i<11; ++i) {
         // improve the x-axis
         xTil = x_coord;
@@ -202,6 +203,7 @@ void twoDimStressSubspace(Graph::Graph & g, \
             break;
         }
         i++;
+        ter++;
     // }
 
     }

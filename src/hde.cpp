@@ -1,10 +1,9 @@
 /**
- * Declare HDE function
+ * Implement HDE function
  */
 #include <algorithm>
-#include <stdlib.h>     /* srand, rand */
 #ifndef GRAPH
-#define GRAPH "graph.h"
+#define GRAPH "graph.hpp"
 #include GRAPH
 #endif
 
@@ -27,7 +26,7 @@ int ArgMax(Eigen::VectorXd vec)
 }
 
 
-Eigen::MatrixXd HDE(Graph::Graph g, int m)
+Eigen::MatrixXd HDE(Graph::Graph & g, int m)
 {
     // Return High-Dimensional Embedding of the graph with m-dim assign
     //
@@ -44,17 +43,15 @@ Eigen::MatrixXd HDE(Graph::Graph g, int m)
     dist.fill(INF);
     Eigen::VectorXd dist_star(g.getNumNodes());
     dist_star.fill(INF);
-
+    m = std::min(g.getNumNodes(), m);
+    std::cout << "low dimension m = " << std::endl;
     Eigen::MatrixXd basis(m, g.getNumNodes());
-    // std::cout << "pivot node: " << pivot_idx << std::endl;
     for (int i=0; i<m; ++i) {
         // compute all distance based on subspace basis vectors to pivot node
         // via BFS
         dist_star = g.BFS(pivot_idx); // todo: does not need to clear 
                                       // dist_star?
-        // std::cout << "dist star:" << std::endl;
-        // std::cout << "----------" << std::endl;
-        // std::cout << dist_star << std::endl;
+
         for (int j=0; j<g.getNumNodes(); j++) {
             basis(i, j) = dist_star(j); // todo: change to vector standard
                                         // usage
@@ -63,13 +60,6 @@ Eigen::MatrixXd HDE(Graph::Graph g, int m)
 
         // choose next pivot
         pivot_idx = ArgMax(dist);
-        // std::cout << "dist vect:" << std::endl;
-        // std::cout << "----------" << std::endl;
-        // std::cout << dist << std::endl;
-        // std::cout << "dist star:" << std::endl;
-        // std::cout << "----------" << std::endl;
-        // std::cout << dist_star << std::endl;
-        // std::cout << "pivot node: " << pivot_idx << std::endl;
 
     }
     std::cout << "computed hde basis:" << std::endl;

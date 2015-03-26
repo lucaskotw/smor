@@ -1,5 +1,5 @@
 /**
- * Perform Orthonormalize process
+ * Implement Orthonormalize process
  */
 #ifndef VECTOR
 #define VECTOR <vector>
@@ -8,10 +8,6 @@
 #ifndef E_DENSE
 #define E_DENSE <Eigen/Dense>
 #include E_DENSE
-#endif
-#ifndef VECTOROP
-#define VECTOROP "vector_op.h"
-#include VECTOROP
 #endif
 #ifndef IOSTREAM
 #define IOSTREAM <iostream>

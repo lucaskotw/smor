@@ -3,7 +3,7 @@
  * via BFS to each vertex
  */
 #ifndef GRAPH
-#define GRAPH "graph.h"
+#define GRAPH "graph.hpp"
 #include GRAPH
 #endif
 
