@@ -23,6 +23,7 @@ extern "C" {
 // Custom header file
 #include "graph.hpp"
 #include "load_graph.hpp"
+#include "draw_layout.hpp"
 
 
 int main(int argc, char** argv)
@@ -55,4 +56,5 @@ int main(int argc, char** argv)
     /******************
      * Draw the graph *
      ******************/
+     drawLayout(g, x_coord, y_coord);
 }

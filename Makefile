@@ -3,7 +3,7 @@
 
 CC = g++
 SMSO_OBJS = mmio.o load_graph.o graph.o all_pair.o hde.o smso.o lap.o g_bound.o ortho.o subspace_iter.o two_d_stress.o
-SMOR_OBJS = mmio.o load_graph.o graph.o smor.o
+SMOR_OBJS = mmio.o load_graph.o graph.o draw_layout.o smor.o
 # executable name
 OBJ_NAME = bin/main
 DEBUG = -g
@@ -49,7 +49,10 @@ two_d_stress.o: src/two_d_stress.hpp src/two_d_stress.cpp
 smso.o: src/all_pair.hpp src/hde.hpp src/subspace_iter.hpp src/two_d_stress.hpp src/smso.cpp
 	$(CC) $(CFLAGS) $(IPATHS) src/smso.cpp
 
-smor.o: src/graph.hpp src/load_graph.hpp src/smor.cpp
+draw_layout.o: src/draw_layout.hpp src/draw_layout.cpp
+	$(CC) $(CFLAGS) $(IPATHS) src/draw_layout.cpp
+
+smor.o: src/draw_layout.hpp src/graph.hpp src/load_graph.hpp src/smor.cpp
 	$(CC) $(CFLAGS) $(IPATHS) src/smor.cpp
 
 
