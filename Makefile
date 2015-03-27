@@ -1,5 +1,9 @@
+# smso: subspace optimazation
+# smno: thesis layout, node overlap removal
+
 CC = g++
-OBJS = mmio.o load_graph.o graph.o all_pair.o hde.o main.o lap.o g_bound.o ortho.o subspace_iter.o two_d_stress.o
+SMSO_OBJS = mmio.o load_graph.o graph.o all_pair.o hde.o smso.o lap.o g_bound.o ortho.o subspace_iter.o two_d_stress.o
+SMOR_OBJS = mmio.o load_graph.o graph.o smor.o
 # executable name
 OBJ_NAME = bin/main
 DEBUG = -g
@@ -10,7 +14,7 @@ IPATHS = -I/usr/local/Cellar/eigen/3.2.4/include/eigen3/ -I/usr/local/include -I
 LPATHS = -L/usr/local/lib -L/opt/X11/lib
 
 
-all: layout
+all: smso smor
 
 mmio.o: src/mmio.h src/mmio.c
 	gcc $(CFLAGS) src/mmio.c
@@ -42,11 +46,19 @@ subspace_iter.o: src/g_bound.hpp src/ortho.hpp src/subspace_iter.hpp src/subspac
 two_d_stress.o: src/two_d_stress.hpp src/two_d_stress.cpp
 	$(CC) $(CFLAGS) $(I_E_PATHS) src/two_d_stress.cpp
 
-main.o: src/all_pair.hpp src/hde.hpp src/subspace_iter.hpp src/two_d_stress.hpp src/main.cpp
-	$(CC) $(CFLAGS) $(IPATHS) src/main.cpp
+smso.o: src/all_pair.hpp src/hde.hpp src/subspace_iter.hpp src/two_d_stress.hpp src/smso.cpp
+	$(CC) $(CFLAGS) $(IPATHS) src/smso.cpp
 
-layout: $(OBJS)
-	$(CC) $(OBJS) $(LPATHS) $(LFLAGS) -o bin/layout
+smor.o: src/smso.cpp
+	$(CC) $(CFLAGS) $(IPATHS) src/smor.cpp
+
+
+
+smso: $(SMSO_OBJS)
+	$(CC) $(SMSO_OBJS) $(LPATHS) $(LFLAGS) -o bin/smso
+
+smor: $(SMOR_OBJS)
+	$(CC) $(SMOR_OBJS) $(LPATHS) $(LFLAGS) -o bin/smor
 
 clean:
-	rm bin/layout *.o
+	rm bin/smso bin/smor *.o
