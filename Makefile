@@ -49,7 +49,7 @@ two_d_stress.o: src/two_d_stress.hpp src/two_d_stress.cpp
 smso.o: src/all_pair.hpp src/hde.hpp src/subspace_iter.hpp src/two_d_stress.hpp src/smso.cpp
 	$(CC) $(CFLAGS) $(IPATHS) src/smso.cpp
 
-smor.o: src/smso.cpp
+smor.o: src/graph.hpp src/load_graph.hpp src/smor.cpp
 	$(CC) $(CFLAGS) $(IPATHS) src/smor.cpp
 
 
