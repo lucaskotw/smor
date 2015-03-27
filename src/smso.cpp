@@ -1,9 +1,5 @@
 /**
- * Drawing with clusters overlap removal
- * 1. initial positioning
- * 2. clusters overlap removal
- *   a) bundle the edge with order considering
- * 3. draw the layout
+ * subspace optimization
  */
 
 /**
