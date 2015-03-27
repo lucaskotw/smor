@@ -17,7 +17,8 @@
 #include ORTHO
 #endif
 
-
+void removeColumn(Eigen::MatrixXd& matrix, unsigned int colToRemove);
 void SubspaceIteration(Eigen::MatrixXd & lap, Eigen::MatrixXd & basis);
+
 
 #endif

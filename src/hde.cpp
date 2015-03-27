@@ -44,18 +44,17 @@ Eigen::MatrixXd HDE(Graph::Graph & g, int m)
     Eigen::VectorXd dist_star(g.getNumNodes());
     dist_star.fill(INF);
     m = std::min(g.getNumNodes(), m);
-    std::cout << "low dimension m = " << std::endl;
-    Eigen::MatrixXd basis(m, g.getNumNodes());
-    for (int i=0; i<m; ++i) {
+    Eigen::MatrixXd basis(g.getNumNodes(), m);
+    for (int cc=0; cc<m; ++cc) {
         // compute all distance based on subspace basis vectors to pivot node
         // via BFS
         dist_star = g.BFS(pivot_idx); // todo: does not need to clear 
                                       // dist_star?
 
-        for (int j=0; j<g.getNumNodes(); j++) {
-            basis(i, j) = dist_star(j); // todo: change to vector standard
-                                        // usage
-            dist(j) = std::min(dist(j), basis(i, j));
+        for (int rr=0; rr<g.getNumNodes(); rr++) {
+            basis(rr, cc) = dist_star(rr);
+
+            dist(rr) = std::min(dist(rr), basis(rr, cc));
         }
 
         // choose next pivot

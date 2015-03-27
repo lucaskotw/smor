@@ -114,11 +114,10 @@ Eigen::VectorXd computeNextSol(Eigen::MatrixXd & lap, \
  **************************************************************/
 Eigen::VectorXd computeNextLayoutVec(Eigen::MatrixXd & A, \
     Eigen::MatrixXd & basis, \
-    Eigen::VectorXd & xTil, \
     Eigen::VectorXd & b_x)
 {
-    Eigen::VectorXd sol(basis.rows());
-    sol = (A.transpose() * A).ldlt().solve(A.transpose() * basis * b_x);
+    Eigen::VectorXd sol(basis.cols());
+    sol = (A.transpose() * A).ldlt().solve(A.transpose() * basis.transpose() * b_x);
 
     return sol;
 }
@@ -140,13 +139,13 @@ void twoDimStressSubspace(Graph::Graph & g, \
 {
 
     // Eigen::MatrixXd lap = Laplacian(g);
-    // std::cout << "current basis" << std::endl;
-    // std::cout << basis << std::endl;
+    std::cout << "current basis" << std::endl;
+    std::cout << basis << std::endl;
 
-    Eigen::MatrixXd A = basis * lap * basis.transpose();
+    Eigen::MatrixXd A = basis.transpose() * lap * basis;
 
-    // std::cout << "A matrix" << std::endl;
-    // std::cout << A << std::endl;
+    std::cout << "A matrix" << std::endl;
+    std::cout << A << std::endl;
 
 
     Eigen::VectorXd xTil;
@@ -159,17 +158,17 @@ void twoDimStressSubspace(Graph::Graph & g, \
     // while ((xTil != x_coord) || (yTil != y_coord)) {
     int ter = 0; // clean: after check the error of the code
     // while(true) {
-    while(ter<200) {
+    while(ter<2000) {
     // for (int i=0; i<11; ++i) {
         // improve the x-axis
         xTil = x_coord;
         b_x = computeNextSol(lap, dist, xTil, y_coord, 2); // distPar (alpha) = 2
-        // std::cout << "next x layout solution" << std::endl;
-        // std::cout << "b_x = " << b_x.transpose() << std::endl;
-        v = computeNextLayoutVec(A, basis, xTil, b_x);
-        // std::cout << "next x layout vector" << std::endl;
-        // std::cout << "v = " << v.transpose() << std::endl;
-        x_coord = basis.transpose() * v;
+        std::cout << "next x layout solution" << std::endl;
+        std::cout << "b_x = " << b_x.transpose() << std::endl;
+        v = computeNextLayoutVec(A, basis, b_x);
+        std::cout << "next x layout vector" << std::endl;
+        std::cout << "v = " << v.transpose() << std::endl;
+        x_coord = basis * v;
 
 
 
@@ -178,28 +177,28 @@ void twoDimStressSubspace(Graph::Graph & g, \
         b_y = computeNextSol(lap, dist, yTil, x_coord, 2); // distPar (alpha) = 2
         // std::cout << "next y layout solution" << std::endl;
         // std::cout << "b_y = " << b_y.transpose() << std::endl;
-        v = computeNextLayoutVec(A, basis, yTil, b_y);
+        v = computeNextLayoutVec(A, basis, b_y);
         // std::cout << "next y layout vector" << std::endl;
         // std::cout << "y = " << v.transpose() << std::endl;
-        y_coord = basis.transpose() * v;
+        y_coord = basis * v;
 
-        std::cout << "round #" << i << std::endl;
-        std::cout << "x = " << x_coord.transpose() << std::endl;
+        // std::cout << "round #" << i << std::endl;
+        // std::cout << "x = " << x_coord.transpose() << std::endl;
         if (xTil != x_coord) {
-            std::cout << "xtil = x: " << "false" << std::endl;
+            // std::cout << "xtil = x: " << "false" << std::endl;
         } else {
-            std::cout << "xtil = x: " << "true" << std::endl;
+            // std::cout << "xtil = x: " << "true" << std::endl;
         }
-        std::cout << "y = " << y_coord.transpose() << std::endl;
+        // std::cout << "y = " << y_coord.transpose() << std::endl;
         if (yTil != y_coord) {
-            std::cout << "ytil = y: " << "false" << std::endl;
+            // std::cout << "ytil = y: " << "false" << std::endl;
         } else {
-            std::cout << "ytil = y: " << "true" << std::endl;
+            // std::cout << "ytil = y: " << "true" << std::endl;
         }
         if ((xTil != x_coord) || (yTil != y_coord)) {
-            std::cout << "not terminate" << std::endl;
+            // std::cout << "not terminate" << std::endl;
         } else {
-            std::cout << "terminated" << std::endl;
+            // std::cout << "terminated" << std::endl;
             break;
         }
         i++;

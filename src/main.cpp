@@ -126,89 +126,94 @@ int main(int argc, char** argv)
   std::cout << dist << std::endl;
 
   // test HDE
-  Eigen::MatrixXd low_eigen = HDE(g, 50);
+  Eigen::MatrixXd basis = HDE(g, 50);
 
 
-  // // test Laplacian
-  // Eigen::MatrixXd lap = Laplacian(g, 2);
-  // std::cout << "Appropriate Laplcian" << std::endl;
-  // std::cout << lap << std::endl;
+  // test Laplacian
+  Eigen::MatrixXd nLap = nonNormLaplacian(g);
+  std::cout << "Non normailize Laplcian" << std::endl;
+  std::cout << nLap << std::endl;
+  Eigen::MatrixXd lap = Laplacian(g, 2);
+  std::cout << "normailize Laplcian" << std::endl;
+  std::cout << lap << std::endl;
 
-  // // test space iteration
-  // SubspaceIteration(lap, low_eigen);
-  // Eigen::VectorXd x_coord = low_eigen.row(0);
-  // Eigen::VectorXd y_coord = low_eigen.row(1);
-  // std::cout << "previous coordinates" << std::endl;
-  // std::cout << "x: " << x_coord.transpose() << std::endl;
-  // std::cout << "y: " << y_coord.transpose() << std::endl;
-
-  // // test 2d stress minimization
-  // twoDimStressSubspace(g, lap, dist, low_eigen, x_coord, y_coord);
-  // std::cout << "result coordinates" << std::endl;
-  // std::cout << "x: " << x_coord.transpose() << std::endl;
-  // std::cout << "y: " << y_coord.transpose() << std::endl;
-  // // int t = 10;
-  // // X = InitialPlacement(G, t) // Not Preliminary Drawing
+  // test space iteration
+  SubspaceIteration(nLap, basis);
+  Eigen::VectorXd x_coord = basis.col(0);
+  Eigen::VectorXd y_coord = basis.col(1);
 
 
-  // /* -------- *\
-  //     Layout
-  // \* -------- */
+  std::cout << "previous coordinates" << std::endl;
+  std::cout << "x: " << x_coord.transpose() << std::endl;
+  std::cout << "y: " << y_coord.transpose() << std::endl;
+
+  // test 2d stress minimization
+  twoDimStressSubspace(g, lap, dist, basis, x_coord, y_coord);
+  std::cout << "result coordinates" << std::endl;
+  std::cout << "x: " << x_coord.transpose() << std::endl;
+  std::cout << "y: " << y_coord.transpose() << std::endl;
+  // int t = 10;
+  // X = InitialPlacement(G, t) // Not Preliminary Drawing
+
+
+  /* -------- *\
+      Layout
+  \* -------- */
   
-  // // StressMajorizationLayout(G, X, t)
+  // StressMajorizationLayout(G, X, t)
 
-  // /* ---------------- *\
-  //     Draw the graph
-  // \* ---------------- */
+  /* ---------------- *\
+      Draw the graph
+  \* ---------------- */
 
-  // // InitializeDrawing(argc, argv);
-  // // DrawLayout(X)
-  // GLFWwindow* window;
+  // InitializeDrawing(argc, argv);
+  // DrawLayout(X)
+  GLFWwindow* window;
 
-  // /* Initialize the library */
-  // if (!glfwInit())
-  //     return -1;
+  /* Initialize the library */
+  if (!glfwInit())
+      return -1;
 
-  // /* Create a windowed mode window and its OpenGL context */
-  // window = glfwCreateWindow(800, 800, "2D Stress Layout", NULL, NULL);
-  // if (!window)
-  // {
-  //     glfwTerminate();
-  //     return -1;
-  // }
+  /* Create a windowed mode window and its OpenGL context */
+  window = glfwCreateWindow(800, 800, "2D Stress Layout", NULL, NULL);
+  if (!window)
+  {
+      glfwTerminate();
+      return -1;
+  }
 
-  // /* Make the window's context current */
-  // glfwMakeContextCurrent(window);
-
-
-  // /* Loop until the user closes the window */
-  // while (!glfwWindowShouldClose(window))
-  // {
-  //   /* Render here */
-
-  //   // glfwGetFramebufferSize(window, &width, &height);
-  //   // glViewport(0, 0, width, height);
-  //   setPointsAttributes();
-
-  //   // set frame background color
-  //   glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );
-  //   glClear(GL_COLOR_BUFFER_BIT);
+  /* Make the window's context current */
+  glfwMakeContextCurrent(window);
 
 
-  //   drawNodes(x_coord, y_coord);
-  //   drawEdges(g.getEdges(), x_coord, y_coord);
+  /* Loop until the user closes the window */
+  while (!glfwWindowShouldClose(window))
+  {
+    /* Render here */
+
+    // glfwGetFramebufferSize(window, &width, &height);
+    // glViewport(0, 0, width, height);
+    setPointsAttributes();
+
+    // set frame background color
+    glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );
+    glClear(GL_COLOR_BUFFER_BIT);
+
+
+    drawNodes(x_coord, y_coord);
+    drawEdges(g.getEdges(), x_coord, y_coord);
 
     
 
 
-  //   /* Swap front and back buffers */
-  //   glfwSwapBuffers(window);
+    /* Swap front and back buffers */
+    glfwSwapBuffers(window);
 
-  //   /* Poll for and process events */
-  //   glfwPollEvents();
-  // }
+    /* Poll for and process events */
+    glfwPollEvents();
+  }
 
-  // glfwTerminate();
+  glfwTerminate();
 
 
 

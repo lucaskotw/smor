@@ -10,6 +10,7 @@
 #include GRAPH
 #endif
 
+Eigen::MatrixXd nonNormLaplacian(Graph::Graph g);
 Eigen::MatrixXd Laplacian(Graph::Graph g, double distPar);
 
 #endif

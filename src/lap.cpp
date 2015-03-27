@@ -9,6 +9,31 @@
 #endif
 
 
+
+Eigen::MatrixXd nonNormLaplacian(Graph::Graph g)
+{
+    int nNodes = g.getNumNodes();
+    Eigen::MatrixXd lap(nNodes, nNodes);
+    lap.fill(0);
+    Eigen::VectorXd nbors;
+    for (int i=0; i<g.getNumNodes(); ++i) {
+
+        // if node j is node i's neighbor
+        nbors.resize(g.adj(i).size());
+        nbors = g.adj(i);
+        for (int j=0; j<nbors.size(); ++j)
+        {
+            lap(i, nbors(j)) = -1;
+        }
+
+        lap(i, i) = nbors.size();
+
+    }
+
+    return lap;
+}
+
+
 Eigen::MatrixXd Laplacian(Graph::Graph g, double distPar)
 {
     int nNodes = g.getNumNodes();
