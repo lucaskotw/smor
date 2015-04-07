@@ -77,7 +77,8 @@ void stressMajorization(Graph::Graph & g, \
     Eigen::MatrixXd & dist, \
     Eigen::MatrixXd & coord, \
     std::ofstream & logFile, \
-    double distParam) {
+    double distParam, \
+    double threshold) {
 
     if (!logFile.is_open()) {
         std::cout << "logFile file is not opened!" << std::endl;
@@ -105,7 +106,7 @@ void stressMajorization(Graph::Graph & g, \
 
 
     // First Iteration
-    double epsl = THRESHOLD;
+    double epsl = threshold;
     
     Eigen::MatrixXd iLap(wLap.rows(), wLap.cols());
     Eigen::MatrixXd pSol(wLap.rows(), wLap.cols());

@@ -9,5 +9,6 @@ void stressMajorization(Graph::Graph & g, \
     Eigen::MatrixXd & dist, \
     Eigen::MatrixXd & coord, \
     std::ofstream & logFile, \
-    double distParam);
+    double distParam, \
+    double threshold);
 #endif

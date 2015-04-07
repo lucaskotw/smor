@@ -91,7 +91,7 @@ int main(int argc, char** argv)
 
     t = std::time(0);
     logFile << "stress majorization start time: " << std::asctime(std::localtime(&t));
-    stressMajorization(g, dist, coord, logFile, 2);
+    stressMajorization(g, dist, coord, logFile, 2, 0.01);
     t = std::time(0);
     std::cout << "end time: " << std::asctime(std::localtime(&t));
     logFile << "end time: " << std::asctime(std::localtime(&t));
