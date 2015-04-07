@@ -176,7 +176,7 @@ Eigen::VectorXd Graph::BFS(int s)
         // std::cout << std::endl;
     }
 
-    // std::cout << "BFS from source " << s << std::endl;
+    std::cout << "BFS from source " << s << std::endl;
     // std::cout << dist.transpose() << std::endl;
 
     return dist;

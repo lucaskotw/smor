@@ -10,7 +10,14 @@
 #include GRAPH
 #endif
 
-Eigen::MatrixXd nonNormLaplacian(Graph::Graph g);
-Eigen::MatrixXd Laplacian(Graph::Graph g, double distPar);
+Eigen::MatrixXd nonNormLaplacian(Graph::Graph & g);
+/* Weighted Laplacian */
+Eigen::MatrixXd wLaplacian(Graph::Graph & g, Eigen::MatrixXd & dist,
+    double distPar);
+/* Iterated Layout Laplacian Matrix */
+Eigen::MatrixXd iterLayoutLaplacian(Graph::Graph & g, \
+    Eigen::MatrixXd & dist, \
+    Eigen::MatrixXd & coord, \
+    double distPar);
 
 #endif

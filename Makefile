@@ -3,7 +3,7 @@
 
 CC = g++
 SMSO_OBJS = mmio.o load_graph.o graph.o all_pair.o hde.o smso.o lap.o g_bound.o ortho.o subspace_iter.o two_d_stress.o
-SMOR_OBJS = mmio.o load_graph.o graph.o draw_layout.o smor.o
+SMOR_OBJS = mmio.o load_graph.o graph.o draw_layout.o all_pair.o lap.o sm.o smor.o
 # executable name
 OBJ_NAME = bin/main
 DEBUG = -g
@@ -50,9 +50,12 @@ smso.o: src/all_pair.hpp src/hde.hpp src/subspace_iter.hpp src/two_d_stress.hpp 
 	$(CC) $(CFLAGS) $(IPATHS) src/smso.cpp
 
 draw_layout.o: src/draw_layout.hpp src/draw_layout.cpp
-	$(CC) $(CFLAGS) $(IPATHS) src/draw_layout.cpp
+	$(CC) $(CFLAGS) $(I_E_PATHS) src/draw_layout.cpp
 
-smor.o: src/draw_layout.hpp src/graph.hpp src/load_graph.hpp src/smor.cpp
+sm.o: src/lap.hpp src/sm.hpp src/sm.cpp
+	$(CC) $(CFLAGS) $(I_E_PATHS) src/sm.cpp
+
+smor.o: src/draw_layout.hpp src/all_pair.hpp src/load_graph.hpp src/smor.cpp
 	$(CC) $(CFLAGS) $(IPATHS) src/smor.cpp
 
 
@@ -63,5 +66,10 @@ smso: $(SMSO_OBJS)
 smor: $(SMOR_OBJS)
 	$(CC) $(SMOR_OBJS) $(LPATHS) $(LFLAGS) -o bin/smor
 
-clean:
-	rm bin/smso bin/smor *.o
+clean: clean_smor clean_smso
+
+clean_smso:
+	rm bin/smso $(SMSO_OBJS)
+
+clean_smor:
+	rm bin/smor $(SMOR_OBJS)

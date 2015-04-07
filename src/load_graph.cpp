@@ -32,6 +32,33 @@ extern "C"
 #include GRAPH
 #endif
 
+
+void getEdgesFromInput(char * str, int charSize, \
+    int & rElem, int & cElem, double & val)
+{
+    val = 0; // initialize edge value
+    int space = 0; // calculate the space
+    for (int i=0; i<charSize; ++i) {
+        if (str[i] == '\n') { // check the end of str
+            break;
+        }
+        if (str[i] == ' ') { // record if space appear
+            ++space;
+        }
+    }
+    // std::cout << "str = " << str << std::endl;
+    // std::cout << "space = " << space << std::endl;
+
+    // deal with the space condition
+    if (space == 1) {
+        sscanf(str, "%d %d", &rElem, &cElem);
+    } else if (space == 2) {
+        sscanf(str, "%d %d %lg", &rElem, &cElem, &val);
+    }
+    // std::cout << "r=" << rElem << ",c=" << cElem << std::endl;
+
+}
+
 int mmRead(char *path, Eigen::MatrixXd & mat, int & nodeNums)
 {
     std::cout << path << std::endl;
@@ -39,7 +66,7 @@ int mmRead(char *path, Eigen::MatrixXd & mat, int & nodeNums)
     MM_typecode matcode; // this var will record the type of the matrix
 
     // error handling while fopen
-    if ((f = fopen("data/karate.mtx", "r")) == NULL)
+    if ((f = fopen(path, "r")) == NULL)
     {
         std::cout << "error opening file" << std::endl;
         return -1;
@@ -66,6 +93,7 @@ int mmRead(char *path, Eigen::MatrixXd & mat, int & nodeNums)
         exit(1);
     }
     mat.resize(Rows, Cols);
+    mat.fill(0);
     std::cout << "Matrix Size = " << Rows << " x " << Cols << std::endl;
 
     nodeNums = Rows; // set up the node numbers
@@ -73,20 +101,31 @@ int mmRead(char *path, Eigen::MatrixXd & mat, int & nodeNums)
     // read in the matrix content
     int rElem;
     int cElem;
+    double val;
+    char str[60];
+    std::cout << "#non zero = " << nZero << std::endl;
+    
     for (int i=0; i<nZero; ++i)
     {
-        fscanf(f, "%d %d\n", &rElem, &cElem);
-        // mat index start from 0, but matrix format index from 1
-        mat(rElem-1, cElem-1) = 1;
-        if (mm_is_symmetric(matcode))
-        {
-            mat(cElem-1, rElem-1) = 1;
+        if (fgets(str, 60, f) != NULL) {
+            getEdgesFromInput(str, 60, rElem, cElem, val);
+            if (val == 0) {
+                mat(rElem-1, cElem-1) = 1;
+                mat(cElem-1, rElem-1) = 1;
+                std::cout << "value = 0" << std::endl;
+            } else if (val != 0) {
+                mat(rElem-1, cElem-1) = val;
+                mat(cElem-1, rElem-1) = val;
+                
+            }
+            std::cout << "r=" << rElem << ", c=" << cElem \
+                << ", val=" << val << std::endl;
         }
 
     }
 
     // print out the created matrix
-    std::cout << "Input Adjacency Matrix" << std::endl;
+    std::cout << "Input Adjacency Matrix Non zero" << std::endl;
     std::cout << mat << std::endl;
     return 0; // success
 }
@@ -94,11 +133,15 @@ int mmRead(char *path, Eigen::MatrixXd & mat, int & nodeNums)
 
 int CreateGraph(Graph::Graph & g, Eigen::MatrixXd & adj_mat)
 {
+    std::cout << "create graph" << std::endl;
+    std::cout << adj_mat << std::endl;
+    std::cout << adj_mat.rows() << std::endl;
     for (int i=0; i<adj_mat.rows(); ++i)
     {
-        for (int j=0; j<=i; ++j) {
+        for (int j=adj_mat.rows()-1; j>=i; --j) {
             if (adj_mat(i, j) != 0) {
                 g.addEdge(i, j, 1);
+                std::cout << "add edge" << std::endl;
             }
         }
     }

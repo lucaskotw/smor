@@ -16,32 +16,33 @@
 #define GRAPH "graph.hpp"
 #include GRAPH
 #endif
-
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 800
 
 void setPointsAttributes()
 {
   glEnable(GL_POINT_SMOOTH);
-  glPointSize(20);
+  glPointSize(10);
 }
 
 
-void drawNodes(Eigen::VectorXd & x_coord, Eigen::VectorXd & y_coord)
+void drawNodes(Eigen::MatrixXd & coord)
 {
+  double coord_max = coord.maxCoeff();
   glBegin(GL_POINTS);
 
     glColor3f(0.5f, 0.5f, 0.5f);
-    for (int i=0; i<x_coord.size(); ++i) {
-      glVertex2f(x_coord(i)/3, y_coord(i)/3);
+    for (int i=0; i<coord.rows(); ++i) {
+      glVertex2f(coord(i, 0)/coord_max, coord(i, 1)/coord_max);
     }
 
   glEnd();
 }
 
 
-void drawEdges(Eigen::MatrixXd edges, \
-  Eigen::VectorXd & x_coord, Eigen::VectorXd & y_coord)
+void drawEdges(Eigen::MatrixXd edges, Eigen::MatrixXd & coord)
 {
-
+  double coord_max = coord.maxCoeff();
   glBegin(GL_LINES);
 
     glColor3f(0.5f, 0.5f, 0.5f);
@@ -50,8 +51,8 @@ void drawEdges(Eigen::MatrixXd edges, \
     for (int i=0; i<edges.rows(); ++i) {
       pt1 = edges(i, 0);
       pt2 = edges(i, 1);
-      glVertex2f(x_coord(pt1)/3, y_coord(pt1)/3);
-      glVertex2f(x_coord(pt2)/3, y_coord(pt2)/3);
+      glVertex2f(coord(pt1, 0)/coord_max, coord(pt1, 1)/coord_max);
+      glVertex2f(coord(pt2, 0)/coord_max, coord(pt2, 1)/coord_max);
       // std::cout << "edges size=" << i << std::endl;
     }
     
@@ -60,10 +61,11 @@ void drawEdges(Eigen::MatrixXd edges, \
 }
 
 
-void drawLayout(Graph::Graph &g, \
-  Eigen::VectorXd & x_coord, Eigen::VectorXd & y_coord)
+void drawLayout(Graph::Graph &g, Eigen::MatrixXd & coord)
 {
-    GLFWwindow* window;
+
+
+  GLFWwindow* window;
 
   /* Initialize the library */
   if (!glfwInit())
@@ -71,7 +73,7 @@ void drawLayout(Graph::Graph &g, \
       // return -1;
 
   /* Create a windowed mode window and its OpenGL context */
-  window = glfwCreateWindow(800, 800, "2D Stress Layout", NULL, NULL);
+  window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "2D Stress Layout", NULL, NULL);
   if (!window)
   {
       glfwTerminate();
@@ -97,8 +99,8 @@ void drawLayout(Graph::Graph &g, \
     glClear(GL_COLOR_BUFFER_BIT);
 
 
-    drawNodes(x_coord, y_coord);
-    drawEdges(g.getEdges(), x_coord, y_coord);
+    drawNodes(coord);
+    drawEdges(g.getEdges(), coord);
 
     
 

@@ -129,7 +129,7 @@ int main(int argc, char** argv)
   Eigen::MatrixXd nLap = nonNormLaplacian(g);
   std::cout << "Non normailize Laplcian" << std::endl;
   std::cout << nLap << std::endl;
-  Eigen::MatrixXd lap = Laplacian(g, 2);
+  Eigen::MatrixXd lap = wLaplacian(g, 2);
   std::cout << "normailize Laplcian" << std::endl;
   std::cout << lap << std::endl;
 
