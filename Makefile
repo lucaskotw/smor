@@ -4,6 +4,7 @@
 CC = g++
 SMSO_OBJS = mmio.o load_graph.o graph.o all_pair.o hde.o smso.o lap.o g_bound.o ortho.o subspace_iter.o two_d_stress.o
 SMOR_OBJS = mmio.o load_graph.o graph.o draw_layout.o all_pair.o lap.o sm.o smor.o
+SMPOR_OBJS = mmio.o smpor.o
 # executable name
 OBJ_NAME = bin/main
 DEBUG = -g
@@ -14,7 +15,7 @@ IPATHS = -I/usr/local/Cellar/eigen/3.2.4/include/eigen3/ -I/usr/local/include -I
 LPATHS = -L/usr/local/lib -L/opt/X11/lib
 
 
-all: smso smor
+all: smso smor smpor
 
 mmio.o: src/mmio.h src/mmio.c
 	gcc $(CFLAGS) src/mmio.c
@@ -58,6 +59,9 @@ sm.o: src/lap.hpp src/sm.hpp src/sm.cpp
 smor.o: src/draw_layout.hpp src/all_pair.hpp src/load_graph.hpp src/smor.cpp
 	$(CC) $(CFLAGS) $(IPATHS) src/smor.cpp
 
+smpor.o: src/smpor.cpp
+	$(CC) $(CFLAGS) $(IPATHS) src/smpor.cpp
+
 
 
 smso: $(SMSO_OBJS)
@@ -66,6 +70,9 @@ smso: $(SMSO_OBJS)
 smor: $(SMOR_OBJS)
 	$(CC) $(SMOR_OBJS) $(LPATHS) $(LFLAGS) -o bin/smor
 
+smor: $(SMPOR_OBJS)
+	$(CC) $(SMPOR_OBJS) $(LPATHS) $(LFLAGS) -o bin/smpor
+
 clean: clean_smor clean_smso
 
 clean_smso:
@@ -73,3 +80,6 @@ clean_smso:
 
 clean_smor:
 	rm bin/smor $(SMOR_OBJS)
+
+clean_smpor:
+	rm bin/smpor $(SMPOR_OBJS)
